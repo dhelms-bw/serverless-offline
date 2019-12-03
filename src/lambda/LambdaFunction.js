@@ -74,7 +74,14 @@ export default class LambdaFunction {
     }
 
     this._lambdaContext = new LambdaContext(name, memorySize)
-    this._handlerRunner = new HandlerRunner(funOptions, options, env)
+    this._handlerRunner = new HandlerRunner(
+      funOptions,
+      options,
+      env,
+      serverless,
+      functionKey,
+      functionDefinition,
+    )
   }
 
   _startExecutionTimer() {

@@ -9,11 +9,21 @@ import {
 import { satisfiesVersionRange } from '../../utils/index.js'
 
 export default class HandlerRunner {
-  constructor(funOptions, options, env) {
+  constructor(
+    funOptions,
+    options,
+    env,
+    serverless,
+    functionKey,
+    functionDefinition,
+  ) {
     this._env = env
+    this._functionDefinition = functionDefinition
+    this._functionKey = functionKey
     this._funOptions = funOptions
     this._options = options
     this._runner = null
+    this._serverless = serverless
   }
 
   async _loadRunner() {
@@ -31,7 +41,12 @@ export default class HandlerRunner {
 
     if (useDocker && supportedRuntimesWithDocker.has(runtime)) {
       const { default: DockerRunner } = await import('./DockerRunner.js')
-      return new DockerRunner(this._funOptions, this._env)
+      return new DockerRunner(
+        this._env,
+        this._serverless,
+        this._functionKey,
+        this._functionDefinition,
+      )
     }
 
     if (supportedNodejs.has(runtime)) {
@@ -75,7 +90,12 @@ export default class HandlerRunner {
     // TODO FIXME
     if (supportedRuntimesWithDocker.has(runtime)) {
       const { default: DockerRunner } = await import('./DockerRunner.js')
-      return new DockerRunner(this._funOptions, this._env)
+      return new DockerRunner(
+        this._env,
+        this._serverless,
+        this._functionKey,
+        this._functionDefinition,
+      )
     }
 
     // TODO FIXME

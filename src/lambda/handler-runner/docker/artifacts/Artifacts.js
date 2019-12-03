@@ -4,12 +4,11 @@ import jszip from 'jszip'
 import debugLog from '../../../../debugLog.js'
 
 export default class Artifacts {
-  constructor(serverless, lambdas) {
+  constructor(serverless, functionKey, functionDefinition) {
     const { service, config, pluginManager } = serverless
     this._service = service
     this._config = config
     this._pluginManager = pluginManager
-    this._lambdas = lambdas
 
     this._serviceArtifact = null
     this._functionArtifacts = new Map()
@@ -20,6 +19,9 @@ export default class Artifacts {
       'offline',
       'artifacts',
     )
+
+    this._functionKey = functionKey
+    this._functionDefinition = functionDefinition
   }
 
   async build() {
@@ -43,10 +45,14 @@ export default class Artifacts {
       return true
     }
 
-    for (const functionDefinition of this._lambdas.values()) {
-      if (check(functionDefinition)) {
-        return true
-      }
+    // FIXME
+    // for (const functionDefinition of this._lambdas.values()) {
+    //   if (check(functionDefinition)) {
+    //     return true
+    //   }
+    // }
+    if (check(this._functionDefinition)) {
+      return true
     }
 
     return false
@@ -72,18 +78,18 @@ export default class Artifacts {
       this._serviceArtifact = this._config.servicePath
     }
 
-    this._lambdas.forEach((functionDefinition, functionKey) => {
-      const artifact = functionDefinition.package
-        ? functionDefinition.package.artifact
-        : null
-      if (artifact) {
-        extract.push(
-          this._extractArtifact(artifact).then((artifactPath) => {
-            this._functionArtifacts.set(functionKey, artifactPath)
-          }),
-        )
-      }
-    })
+    // this._lambdas.forEach((functionDefinition, functionKey) => {
+    //   const artifact = functionDefinition.package
+    //     ? functionDefinition.package.artifact
+    //     : null
+    //   if (artifact) {
+    //     extract.push(
+    //       this._extractArtifact(artifact).then((artifactPath) => {
+    //         this._functionArtifacts.set(functionKey, artifactPath)
+    //       }),
+    //     )
+    //   }
+    // })
 
     return Promise.all(extract)
   }

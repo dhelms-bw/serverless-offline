@@ -6,7 +6,7 @@ import Artifacts from './artifacts/index.js'
 import baseImage from './baseImage.js'
 import {
   DOCKER_IMAGE_NAME,
-  supportedRuntimesOnlyWithDocker,
+  // supportedRuntimesOnlyWithDocker,
 } from '../../../config/index.js'
 import { checkDockerDaemon } from '../../../utils/index.js'
 import debugLog from '../../../debugLog.js'
@@ -15,14 +15,13 @@ import { logWarning } from '../../../serverlessLog.js'
 const { entries } = Object
 
 export default class Docker {
-  constructor(serverless, options, lambdas) {
+  constructor(serverless, functionKey, functionDefinition) {
     const { service, config } = serverless
     this._providerRuntime = service.provider.runtime
 
     this._images = new Map()
-    this._lambdas = new Map()
 
-    this._artifacts = new Artifacts(serverless, this._lambdas)
+    this._artifacts = new Artifacts(serverless, functionKey, functionDefinition)
     this._servicePath = config.servicePath
     this._dockerfilesDir = join(
       this._servicePath,
@@ -31,16 +30,7 @@ export default class Docker {
       'dockerfiles',
     )
 
-    this._setLambdas(lambdas, options)
-  }
-
-  _setLambdas(lambdas, options) {
-    lambdas.forEach(({ functionKey, functionDefinition }) => {
-      const runtime = functionDefinition.runtime || this._providerRuntime
-      if (options.useDocker || supportedRuntimesOnlyWithDocker.has(runtime)) {
-        this._lambdas.set(functionKey, functionDefinition)
-      }
-    })
+    this._functionDefinition = functionDefinition
   }
 
   async initialize() {
@@ -51,24 +41,38 @@ export default class Docker {
     ])
   }
 
+  // FIXME
   async _pullBaseImages() {
     const pull = []
     const runtimes = new Set()
 
-    this._lambdas.forEach((functionDefinition) => {
-      const runtime = functionDefinition.runtime || this._providerRuntime
+    // this._lambdas.forEach((functionDefinition) => {
+    //   const runtime = functionDefinition.runtime || this._providerRuntime
+    //
+    //   if (runtimes.has(runtime)) {
+    //     return
+    //   }
+    //   runtimes.add(runtime)
+    //
+    //   const baseImageTag = baseImage(runtime)
+    //
+    //   debugLog(`Downloading base Docker image... (${baseImageTag})`)
+    //
+    //   pull.push(this._pullImage(baseImageTag))
+    // })
 
-      if (runtimes.has(runtime)) {
-        return
-      }
-      runtimes.add(runtime)
+    const runtime = this._functionDefinition.runtime || this._providerRuntime
 
-      const baseImageTag = baseImage(runtime)
+    if (runtimes.has(runtime)) {
+      return undefined
+    }
+    runtimes.add(runtime)
 
-      debugLog(`Downloading base Docker image... (${baseImageTag})`)
+    const baseImageTag = baseImage(runtime)
 
-      pull.push(this._pullImage(baseImageTag))
-    })
+    debugLog(`Downloading base Docker image... (${baseImageTag})`)
+
+    pull.push(this._pullImage(baseImageTag))
 
     return Promise.all(pull)
   }
@@ -84,9 +88,13 @@ export default class Docker {
 
   async get(functionKey, env) {
     const image = await this._getImage(functionKey, env)
-    const { handler } = this._lambdas.get(functionKey)
+    // const { handler } = this._lambdas.get(functionKey)
 
-    const container = new DockerContainer(functionKey, image, handler)
+    const container = new DockerContainer(
+      functionKey,
+      image,
+      this._functionDefinition.handler,
+    )
 
     return container.run()
   }
@@ -102,8 +110,11 @@ export default class Docker {
   }
 
   async _buildImage(functionKey, env) {
-    const runtime =
-      this._lambdas.get(functionKey).runtime || this._providerRuntime
+    // FIXME
+    // const runtime =
+    //   this._lambdas.get(functionKey).runtime || this._providerRuntime
+    const runtime = this._providerRuntime
+
     const artifactPath =
       relative(this._artifacts.get(functionKey), this._servicePath) || '.'
 
