@@ -1,9 +1,8 @@
 export default class DockerRunner {
-  constructor(funOptions, env, docker) {
+  constructor(funOptions, env) {
     const { functionKey } = funOptions
 
     this._env = env
-    this._docker = docker
     this._functionKey = functionKey
 
     this._container = null

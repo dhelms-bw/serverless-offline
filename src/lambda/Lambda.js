@@ -2,15 +2,11 @@ import HttpServer from './HttpServer.js'
 import LambdaFunctionPool from './LambdaFunctionPool.js'
 
 export default class Lambda {
-  constructor(serverless, options, docker) {
+  constructor(serverless, options) {
     this._httpServer = new HttpServer(options, this)
     this._lambdas = new Map()
     this._lambdaFunctionNamesKeys = new Map()
-    this._lambdaFunctionPool = new LambdaFunctionPool(
-      serverless,
-      options,
-      docker,
-    )
+    this._lambdaFunctionPool = new LambdaFunctionPool(serverless, options)
   }
 
   add(functionKey, functionDefinition) {
