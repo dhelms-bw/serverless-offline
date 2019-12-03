@@ -7,7 +7,6 @@ import {
   supportedRuntimesWithDocker,
 } from '../../config/index.js'
 import { satisfiesVersionRange } from '../../utils/index.js'
-import DockerRunner from './DockerRunner.js'
 
 export default class HandlerRunner {
   constructor(funOptions, options, env) {
@@ -31,6 +30,7 @@ export default class HandlerRunner {
     debugLog(`Loading handler... (${handlerPath})`)
 
     if (useDocker && supportedRuntimesWithDocker.has(runtime)) {
+      const { default: DockerRunner } = await import('./DockerRunner.js')
       return new DockerRunner(this._funOptions, this._env)
     }
 
@@ -72,7 +72,9 @@ export default class HandlerRunner {
       return new RubyRunner(this._funOptions, this._env)
     }
 
+    // TODO FIXME
     if (supportedRuntimesWithDocker.has(runtime)) {
+      const { default: DockerRunner } = await import('./DockerRunner.js')
       return new DockerRunner(this._funOptions, this._env)
     }
 
