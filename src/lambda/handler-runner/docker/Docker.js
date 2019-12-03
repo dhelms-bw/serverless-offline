@@ -7,10 +7,10 @@ import baseImage from './baseImage.js'
 import {
   DOCKER_IMAGE_NAME,
   supportedRuntimesOnlyWithDocker,
-} from '../config/index.js'
-import { checkDockerDaemon } from '../utils/index.js'
-import debugLog from '../debugLog.js'
-import { logWarning } from '../serverlessLog.js'
+} from '../../../config/index.js'
+import { checkDockerDaemon } from '../../../utils/index.js'
+import debugLog from '../../../debugLog.js'
+import { logWarning } from '../../../serverlessLog.js'
 
 const { entries } = Object
 

@@ -1,7 +1,7 @@
 import { join, basename, extname, dirname, sep } from 'path'
 import { readFile, writeFile, ensureDir, emptyDir } from 'fs-extra'
 import jszip from 'jszip'
-import debugLog from '../../debugLog.js'
+import debugLog from '../../../../debugLog.js'
 
 export default class Artifacts {
   constructor(serverless, lambdas) {
