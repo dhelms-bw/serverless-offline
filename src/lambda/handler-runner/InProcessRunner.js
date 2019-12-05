@@ -1,14 +1,16 @@
 import { performance } from 'perf_hooks'
+import { logWarning } from '../../serverlessLog.js'
 
 const { assign } = Object
 
 export default class InProcessRunner {
-  constructor(functionKey, handlerPath, handlerName, env, timeout) {
+  constructor(functionKey, handlerPath, handlerName, env, timeout, options) {
     this._env = env
     this._functionKey = functionKey
     this._handlerName = handlerName
     this._handlerPath = handlerPath
     this._timeout = timeout
+    this._options = options
   }
 
   // no-op
@@ -75,8 +77,7 @@ export default class InProcessRunner {
       result = handler(event, lambdaContext, callback)
     } catch (err) {
       // this only executes when we have an exception caused by synchronous code
-      // TODO logging
-      console.log(err)
+      logWarning(err)
       throw new Error(`Uncaught error in '${this._functionKey}' handler.`)
     }
 
@@ -97,8 +98,7 @@ export default class InProcessRunner {
     try {
       callbackResult = await Promise.race(callbacks)
     } catch (err) {
-      // TODO logging
-      console.log(err)
+      logWarning(err)
       throw err
     }
 

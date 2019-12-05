@@ -1,10 +1,11 @@
 import { resolve } from 'path'
 import { node } from 'execa'
+import { logWarning } from '../../serverlessLog.js'
 
 const childProcessHelperPath = resolve(__dirname, 'childProcessHelper.js')
 
 export default class ChildProcessRunner {
-  constructor(funOptions, env) {
+  constructor(funOptions, env, options) {
     const { functionKey, handlerName, handlerPath, timeout } = funOptions
 
     this._env = env
@@ -12,6 +13,7 @@ export default class ChildProcessRunner {
     this._handlerName = handlerName
     this._handlerPath = handlerPath
     this._timeout = timeout
+    this._options = options
   }
 
   // no-op
@@ -44,8 +46,7 @@ export default class ChildProcessRunner {
     try {
       result = await message
     } catch (err) {
-      // TODO
-      console.log(err)
+      logWarning(err)
 
       throw err
     }

@@ -1,18 +1,20 @@
 import { EOL, platform } from 'os'
 import { relative, resolve } from 'path'
 import execa from 'execa'
+import serverlessLog, { logWarning } from '../../serverlessLog.js'
 
 const { parse, stringify } = JSON
 const { cwd } = process
 const { has } = Reflect
 
 export default class RubyRunner {
-  constructor(funOptions, env) {
+  constructor(funOptions, env, options) {
     const { handlerName, handlerPath } = funOptions
 
     this._env = env
     this._handlerName = handlerName
     this._handlerPath = handlerPath
+    this._options = options
   }
 
   // no-op
@@ -83,8 +85,7 @@ export default class RubyRunner {
     try {
       result = await ruby
     } catch (err) {
-      // TODO
-      console.log(err)
+      logWarning(err)
 
       throw err
     }
@@ -92,17 +93,19 @@ export default class RubyRunner {
     const { stderr, stdout } = result
 
     if (stderr) {
-      // TODO
-      console.log(stderr)
+      logWarning(stderr)
 
       return stderr
+    }
+
+    if (this._options.printOutput) {
+      serverlessLog(stdout)
     }
 
     try {
       return this._parsePayload(stdout)
     } catch (err) {
-      // TODO
-      console.log('No JSON')
+      logWarning('No JSON')
 
       // TODO return or re-throw?
       return err

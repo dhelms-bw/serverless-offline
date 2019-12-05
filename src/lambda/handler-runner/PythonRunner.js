@@ -1,19 +1,21 @@
 import { EOL, platform } from 'os'
 import { delimiter, join, relative, resolve } from 'path'
 import execa from 'execa'
+import serverlessLog, { logWarning } from '../../serverlessLog.js'
 
 const { parse, stringify } = JSON
 const { cwd } = process
 const { has } = Reflect
 
 export default class PythonRunner {
-  constructor(funOptions, env) {
+  constructor(funOptions, env, options) {
     const { handlerName, handlerPath, runtime } = funOptions
 
     this._env = env
     this._handlerName = handlerName
     this._handlerPath = handlerPath
     this._runtime = runtime
+    this._options = options
   }
 
   // no-op
@@ -88,26 +90,25 @@ export default class PythonRunner {
     try {
       result = await python
     } catch (err) {
-      // TODO
-      console.log(err)
-
+      logWarning(err)
       throw err
     }
 
     const { stderr, stdout } = result
 
     if (stderr) {
-      // TODO
-      console.log(stderr)
-
+      logWarning(stderr)
       return stderr
+    }
+
+    if (this._options.printOutput) {
+      serverlessLog(stdout)
     }
 
     try {
       return this._parsePayload(stdout)
     } catch (err) {
-      // TODO
-      console.log('No JSON')
+      logWarning(err)
 
       // TODO return or re-throw?
       return err

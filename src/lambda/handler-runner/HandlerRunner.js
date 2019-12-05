@@ -33,7 +33,11 @@ export default class HandlerRunner {
         const { default: ChildProcessRunner } = await import(
           './ChildProcessRunner.js'
         )
-        return new ChildProcessRunner(this._funOptions, this._env)
+        return new ChildProcessRunner(
+          this._funOptions,
+          this._env,
+          this._options,
+        )
       }
 
       if (useWorkerThreads) {
@@ -43,7 +47,11 @@ export default class HandlerRunner {
         const { default: WorkerThreadRunner } = await import(
           './WorkerThreadRunner.js'
         )
-        return new WorkerThreadRunner(this._funOptions, this._env)
+        return new WorkerThreadRunner(
+          this._funOptions,
+          this._env,
+          this._options,
+        )
       }
 
       const { default: InProcessRunner } = await import('./InProcessRunner.js')
@@ -53,17 +61,18 @@ export default class HandlerRunner {
         handlerName,
         this._env,
         timeout,
+        this._options,
       )
     }
 
     if (supportedPython.has(runtime)) {
       const { default: PythonRunner } = await import('./PythonRunner.js')
-      return new PythonRunner(this._funOptions, this._env)
+      return new PythonRunner(this._funOptions, this._env, this._options)
     }
 
     if (supportedRuby.has(runtime)) {
       const { default: RubyRunner } = await import('./RubyRunner.js')
-      return new RubyRunner(this._funOptions, this._env)
+      return new RubyRunner(this._funOptions, this._env, this._options)
     }
 
     // TODO FIXME
