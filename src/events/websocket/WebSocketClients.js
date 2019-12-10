@@ -132,6 +132,13 @@ export default class WebSocketClients {
         connectionId,
       ).create()
 
+      // hack to pass query string params in as authorizer so we can
+      // act like we're authorizing locally
+      disconnectEvent.requestContext.authorizer =
+        connectEvent.queryStringParameters
+      disconnectEvent.requestContext.authorizer.connectionType =
+        connectEvent.queryStringParameters.at === 'd' ? 'DEVICE' : 'CUSTOMER'
+
       this._processEvent(
         webSocketClient,
         connectionId,
@@ -148,6 +155,11 @@ export default class WebSocketClients {
       debugLog(`route:${route} on connection=${connectionId}`)
 
       const event = new WebSocketEvent(connectionId, route, message).create()
+      // hack to pass query string params in as authorizer so we can
+      // act like we're authorizing locally
+      event.requestContext.authorizer = connectEvent.queryStringParameters
+      event.requestContext.authorizer.connectionType =
+        connectEvent.queryStringParameters.at === 'd' ? 'DEVICE' : 'CUSTOMER'
 
       this._processEvent(webSocketClient, connectionId, route, event)
     })
