@@ -132,12 +132,15 @@ export default class WebSocketClients {
         connectionId,
       ).create()
 
-      // hack to pass query string params in as authorizer so we can
-      // act like we're authorizing locally
-      disconnectEvent.requestContext.authorizer =
-        connectEvent.queryStringParameters
+      // hack to create an authorizer that includes the query string params,
+      // and also the derived connectionType and eventFilter, which may not be on the query string,
+      // so that we can mimic locally the authorizer logic that aws apigateway actually does
+      disconnectEvent.requestContext.authorizer = connectEvent.queryStringParameters
       disconnectEvent.requestContext.authorizer.connectionType =
         connectEvent.queryStringParameters.at === 'd' ? 'DEVICE' : 'CUSTOMER'
+      if (!connectEvent.queryStringParameters.eventFilter) {
+        disconnectEvent.requestContext.authorizer.eventFilter = '__none__'
+      }
 
       this._processEvent(
         webSocketClient,
@@ -155,11 +158,14 @@ export default class WebSocketClients {
       debugLog(`route:${route} on connection=${connectionId}`)
 
       const event = new WebSocketEvent(connectionId, route, message).create()
-      // hack to pass query string params in as authorizer so we can
-      // act like we're authorizing locally
+
+      // duplicating the above authorizer hack for every message, see comment above
       event.requestContext.authorizer = connectEvent.queryStringParameters
       event.requestContext.authorizer.connectionType =
         connectEvent.queryStringParameters.at === 'd' ? 'DEVICE' : 'CUSTOMER'
+      if (!connectEvent.queryStringParameters.eventFilter) {
+        event.requestContext.authorizer.eventFilter = '__none__'
+      }
 
       this._processEvent(webSocketClient, connectionId, route, event)
     })
