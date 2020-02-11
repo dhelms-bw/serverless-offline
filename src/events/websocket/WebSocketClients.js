@@ -133,13 +133,19 @@ export default class WebSocketClients {
       ).create()
 
       // hack to create an authorizer that includes the query string params,
-      // and also the derived connectionType and eventFilter, which may not be on the query string,
-      // so that we can mimic locally the authorizer logic that aws apigateway actually does
-      disconnectEvent.requestContext.authorizer = connectEvent.queryStringParameters
-      disconnectEvent.requestContext.authorizer.connectionType =
-        connectEvent.queryStringParameters.at === 'd' ? 'DEVICE' : 'CUSTOMER'
-      if (!connectEvent.queryStringParameters.eventFilter) {
-        disconnectEvent.requestContext.authorizer.eventFilter = '__none__'
+      // and also the derived connectionType and if a device, the deviceType
+      // also set a default eventFilter, which may not be on the query string
+      // all this to mimic locally the authorizer functionality that aws apigateway has
+      disconnectEvent.requestContext.authorizer =
+        connectEvent.queryStringParameters
+      if (connectEvent.queryStringParameters.at === 'd') {
+        disconnectEvent.requestContext.authorizer.connectionType = 'DEVICE'
+        disconnectEvent.requestContext.authorizer.deviceType = 'BROWSER'
+      } else {
+        disconnectEvent.requestContext.authorizer.connectionType = 'CUSTOMER'
+        if (!connectEvent.queryStringParameters.eventFilter) {
+          disconnectEvent.requestContext.authorizer.eventFilter = '__none__'
+        }
       }
 
       this._processEvent(
@@ -161,10 +167,14 @@ export default class WebSocketClients {
 
       // duplicating the above authorizer hack for every message, see comment above
       event.requestContext.authorizer = connectEvent.queryStringParameters
-      event.requestContext.authorizer.connectionType =
-        connectEvent.queryStringParameters.at === 'd' ? 'DEVICE' : 'CUSTOMER'
-      if (!connectEvent.queryStringParameters.eventFilter) {
-        event.requestContext.authorizer.eventFilter = '__none__'
+      if (connectEvent.queryStringParameters.at === 'd') {
+        event.requestContext.authorizer.connectionType = 'DEVICE'
+        event.requestContext.authorizer.deviceType = 'BROWSER'
+      } else {
+        event.requestContext.authorizer.connectionType = 'CUSTOMER'
+        if (!connectEvent.queryStringParameters.eventFilter) {
+          event.requestContext.authorizer.eventFilter = '__none__'
+        }
       }
 
       this._processEvent(webSocketClient, connectionId, route, event)
